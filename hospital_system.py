@@ -40,13 +40,6 @@ class Person(ABC):
     @property
     def ID(self):
         return self._ID
-    @ID.setter
-    def ID(self,new_ID):
-        if not isinstance(new_ID,int):
-            raise TypeError("Person ID must be integers")
-        if len(str(new_ID)) != 4:
-            raise ValueError("Person ID must be 4 digits")
-        self._ID = new_ID
     @abstractmethod
     def role(self):
         pass
@@ -97,7 +90,9 @@ class Patient(Person):
     def remove_appointment(self,appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointment must be an object")
-        self._appointments.remove(appointment)    
+        self._appointments.remove(appointment) 
+    def __repr__(self):
+        return f"Patient({self._name},{self._ID})"
 #===============================Doctor Class====================================
 class Doctor(Person):
     def __init__(self,name,age,ID):
@@ -119,6 +114,8 @@ class Doctor(Person):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointment must be an object")
         self._appointments.remove(appointment)
+    def __repr__(self):
+        return f"Doctor({self._name},{self._ID})"
 #===============================Room Class=======================================
 class Room:
     def __init__(self,number,department):
@@ -173,6 +170,8 @@ class Room:
         return self.number == other.number
     def __hash__(self):
         return hash(self._number)
+    def __repr__(self):
+        return f"Room({self._number},{self._department})"
 #===============================Appointment Class================================ 
 from datetime import datetime
 class Appointment:
@@ -237,6 +236,8 @@ class Appointment:
         self._patient.remove_appointment(self)
         self._doctor.remove_appointment(self)
         self._room.remove_appointment(self)    
+    def __repr__(self):
+        return f"Appointment({self._patient!r},{self._doctor!r},{self._room!r})"
 #===================================Hospital Class==========================
 class Hospital:
     def __init__(self):
@@ -350,8 +351,8 @@ class Hospital:
         self._rooms.remove(room)
         return "Removed"
     def show_patients(self):
-        for i in self._patients:
-            print(i)
+        for patient in self:
+            print(patient)
     def show_doctors(self):
         for i in self._doctors:
             print(i)
@@ -426,7 +427,23 @@ class Hospital:
     def __contains__(self,appointment):
         if not isinstance(appointment,Appointment):
             return False
-        return appointment in self._appointments    
+        return appointment in self._appointments  
+    def __iter__(self):
+        return iter(self._patients)
+    def __repr__(self):
+        return (
+            f"Hospital("
+            f"patients={len(self._patients)}, "
+            f"doctors={len(self._doctors)}, "
+            f"rooms={len(self._rooms)}, "
+            f"appointments={len(self._appointments)})"
+            )    
+    def __getitem__(self,patient_ID):
+        if not isinstance(patient_ID,int):
+            raise TypeError("ID must be integers")
+        if len(str(patient_ID)) !=4:
+            raise ValueError("ID must be 4 digits")
+        return self._patients_index[ID]
 #=======================================Test=====================================
 print("\n========== START SYSTEM STRESS TEST ==========\n")
 hospital = Hospital()
@@ -585,18 +602,168 @@ for a in hospital.appointments:
 
 print()
 
-# =========================
-# MEMORY / INTEGRITY CHECK
-# =========================
-print("===== INTEGRITY CHECK =====")
+    
+print("\n===== MAGIC METHODS TEST =====")
 
-for p in hospital.patients:
-    print(p.name, "appointments:", len(p.appointments))
-for d in hospital.doctors:
-    print(d.name, "appointments:", len(d.appointments))
-for r in hospital.rooms:
-    print(r.number, "appointments:", len(r.appointments))
+# __repr__
+print("\nHospital repr:")
+print(repr(hospital))
 
+print("\nPatient repr:")
+print(repr(p1))
+
+print("\nDoctor repr:")
+print(repr(d1))
+
+print("\nRoom repr:")
+print(repr(r1))
+
+print()
+
+# __getitem__
+print("===== GETITEM TEST =====")
+
+print(hospital[1001])
+print(hospital[1002])
+
+try:
+    print(hospital[9999])
+except KeyError as e:
+    print("KeyError:", e)
+
+print()
+
+# __iter__
+print("===== ITER TEST =====")
+
+for patient in hospital:
+    print(patient)
+
+print()
+
+# manual iterator + next()
+print("===== NEXT TEST =====")
+
+it = iter(hospital)
+
+try:
+    while True:
+        print(next(it))
+except StopIteration:
+    print("Iterator exhausted")
+
+print()
+
+# __contains__
+print("===== CONTAINS TEST =====")
+
+if hospital.appointments:
+    app = hospital.appointments[0]
+
+    print(app in hospital)
+    print("hello" in hospital)
+else:
+    print("No appointments to test")
+
+print()
+# __len__
+print("===== LEN TEST =====")
+
+print("Appointments count:", len(hospital))
+
+print()
+# __eq__
+print("===== EQUALITY TEST =====")
+
+same_patient = Patient("Ali Clone", 99, 1001, "Test")
+
+print(p1 == same_patient)
+print(p1 == p2)
+
+print()
+
+# __hash__
+print("===== HASH TEST =====")
+
+patients_set = {p1, p2, p3}
+
+print(p1 in patients_set)
+print(p2 in patients_set)
+
+clone = Patient("Clone", 50, 1001, "Test")
+
+print(clone in patients_set)
+
+print()
+
+# dictionary key test
+patients_dict = {
+    p1: "Patient One",
+    p2: "Patient Two"
+}
+
+print(patients_dict[p1])
+print(patients_dict[clone])
+
+print()
+
+# tuple protection test
+print("===== IMMUTABILITY TEST =====")
+
+try:
+    hospital.patients.append(p1)
+except Exception as e:
+    print(type(e).__name__, e)
+
+try:
+    p1.appointments.append("fake")
+except Exception as e:
+    print(type(e).__name__, e)
+
+print()
+
+# lookup consistency test
+print("===== LOOKUP TEST =====")
+
+print(hospital.find_patient_by_id(1001))
+print(hospital.find_doctor_by_id(2001))
+print(hospital.find_room_by_num(101))
+
+print()
+
+# remove then lookup
+print("===== REMOVE + LOOKUP TEST =====")
+
+print(hospital.remove_patient(1002))
+
+print(hospital.find_patient_by_id(1002))
+
+print()
+
+# final repr after modifications
+print("===== FINAL REPR =====")
+
+print(repr(hospital))
+
+print()
+
+# iterate after deletion
+print("===== ITERATION AFTER DELETE =====")
+
+for patient in hospital:
+    print(patient)
+
+print()
+
+# membership after abort
+print("===== MEMBERSHIP AFTER ABORT =====")
+
+if hospital.appointments:
+    temp = hospital.appointments[0]
+    print(temp in hospital)
+    hospital.abort_an_appointment(temp)
+    print(temp in hospital)
+
+print()
 print("\n========== END SYSTEM STRESS TEST ==========")
-print(len(hospital))
-print(a in hospital)
+
