@@ -47,7 +47,7 @@ class Person(ABC):
     def add_appointment(self,appointment):
         pass
     @abstractmethod
-    def remove_appointment(self):
+    def remove_appointment(self,appointment):
         pass
     def __eq__(self, other):
         if not isinstance(other,Person):
@@ -90,6 +90,8 @@ class Patient(Person):
     def remove_appointment(self,appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointment must be an object")
+        if appointment not in self._appointments:
+            raise ValueError("Appointment not found")    
         self._appointments.remove(appointment) 
     def __repr__(self):
         return f"Patient({self._name},{self._ID})"
@@ -113,6 +115,8 @@ class Doctor(Person):
     def remove_appointment(self,appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointment must be an object")
+        if appointment not in self._appointments:
+            raise ValueError("Appointment not found")    
         self._appointments.remove(appointment)
     def __repr__(self):
         return f"Doctor({self._name},{self._ID})"
@@ -163,6 +167,8 @@ class Room:
     def remove_appointment(self,appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointment must be an object")
+        if appointment not in self._appointments:
+            raise ValueError("Appointment not found")
         self._appointments.remove(appointment)    
     def __eq__(self,other):
         if not isinstance(other,Room):
@@ -443,7 +449,9 @@ class Hospital:
             raise TypeError("ID must be integers")
         if len(str(patient_ID)) !=4:
             raise ValueError("ID must be 4 digits")
-        return self._patients_index[ID]
+        if not patient_ID in self._patients_index:
+            raise KeyError("Patient not found")
+        return self._patients_index[patient_ID]
 #=======================================Test=====================================
 print("\n========== START SYSTEM STRESS TEST ==========\n")
 hospital = Hospital()
