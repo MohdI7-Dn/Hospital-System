@@ -1,19 +1,55 @@
+#==================================== Helper Functions =====================
+def validate_person_id(ID):
+    if not isinstance(ID,int):
+        raise TypeError("Person ID must be integers")
+    if  not (1000 <= ID <= 9999):
+        raise ValueError("ID must be 4 digits")
+def validate_person_name(name):
+    if not isinstance(name,str):
+        raise TypeError("Name must be a string")
+    if len(name) <= 0:
+        raise ValueError("Person must have a name")      
+def validate_person_age(age):
+    if not isinstance(age,int):
+        raise TypeError("Person age must be integers")
+    if age <=0 or age >= 130:
+        raise ValueError("Age must make sense") 
+def validate_patient_disease(disease):
+    if not isinstance(disease,str):
+        raise TypeError("Disease must be a string")
+    if len(disease) <=0:
+        raise ValueError("Disease letters must be greater than 0")
+def validate_room_num(number):
+    if not isinstance(number,int):
+        raise TypeError("Room number must be integers")
+    if not (100 <=number <=999):
+        raise ValueError("room number must be 3 digits")    
+def validate_room_department(department):
+    if not isinstance(department,str):
+        raise TypeError("Room department must be a string")
+    if len(department) <=0:
+        raise ValueError("Room department letters must be greater than 0")
+VALID_STATUS = {
+        "Pending",
+        "Confirmed",
+        "Completed",
+        "Cancelled"
+        }         
+def validate_appointment_status(status):
+    if not isinstance(status,str):
+        raise TypeError("Status must be a string")
+    if len(status)  <= 0:
+        raise ValueError("Status letters must be greater than 0")
+    if status not in VALID_STATUS:
+        raise ValueError("Status must be clear")
+    
 #====================================Person Class===========================
 from abc import ABC , abstractmethod
 class Person(ABC):
     def __init__(self,name,age,ID):
-        if not isinstance(name,str):
-            raise TypeError("Name must be a string")
-        if not isinstance(age,int):
-            raise TypeError("Person age must be integers")
-        if not isinstance(ID,int):
-            raise TypeError("Person ID must be integers")
-        if len(str(ID)) != 4:
-            raise ValueError("ID must be 4 digits")
-        if len(name) <= 0:
-            raise ValueError("Person must have a name")
-        if age <=0 or age >= 130:
-            raise ValueError("Age must make sense")
+        validate_person_id(ID)
+        validate_person_name(name)
+        validate_person_age(age)
         self._name = name
         self._age = age
         self._ID = ID
@@ -22,20 +58,14 @@ class Person(ABC):
         return self._name
     @name.setter
     def name(self,new_name):
-        if not isinstance(new_name,str):
-            raise TypeError("Person name must be a string")
-        if len(new_name) <= 0:
-            raise ValueError("Person must have a name")
+        validate_person_name(new_name)
         self._name = new_name
     @property
     def age(self):
         return self._age
     @age.setter
     def age(self,new_age):
-        if not isinstance(new_age,int):
-            raise TypeError("Person age must be integers")
-        if new_age <=0 or new_age >= 130:
-            raise ValueError("Person age make no sense")
+        validate_person_age(new_age)
         self._age = new_age
     @property
     def ID(self):
@@ -58,10 +88,7 @@ class Person(ABC):
 #=================================Patient Class===================================
 class Patient(Person):
     def __init__(self,name,age,ID,disease):
-        if not isinstance(disease,str):
-            raise TypeError("Disease must be a string")
-        if len(disease) <=0:
-            raise ValueError("Disease letters must be greater than 0")
+        validate_patient_disease(disease)
         super().__init__(name,age,ID)
         self._disease = disease
         self._appointments = []
@@ -70,10 +97,7 @@ class Patient(Person):
         return self._disease
     @disease.setter
     def disease(self,new_disease):
-        if not isinstance(new_disease,str):
-            raise TypeError("Disease must be a string")
-        if len(new_disease) <=0:
-            raise ValueError("Disease letters must be greater than 0")
+        validate_patient_disease(new_disease)
         self._disease = new_disease    
     @property
     def appointments(self):
@@ -123,14 +147,8 @@ class Doctor(Person):
 #===============================Room Class=======================================
 class Room:
     def __init__(self,number,department):
-        if not isinstance(number,int):
-            raise TypeError("Room number must be integers")
-        if not isinstance(department,str):
-            raise TypeError("Room department must be a string")
-        if len(str(number)) !=3:
-            raise ValueError("Room number must be 3 digits")
-        if len(department) <=0:
-            raise ValueError("Room department letters must be greater than 0")
+        validate_room_num(number)
+        validate_room_department(department)
         self._number = number
         self._department = department
         self._appointments = []
@@ -139,20 +157,14 @@ class Room:
         return self._number
     @number.setter
     def number(self,new_number):
-        if not isinstance(new_number,int):
-            raise TypeError("Room number must be integers")
-        if len(str(new_number)) !=3:
-            raise ValueError("Room number must be 3 digits")    
+        validate_room_num(new_number)  
         self._number = new_number
     @property
     def department(self):
         return self._department
     @department.setter
     def department(self,new_department):
-        if not isinstance(new_department,str):
-            raise TypeError("Room department must be a string")
-        if len(new_department) <=0:
-            raise ValueError("Room department letters must be greater than 0")
+        validate_room_department(new_department)
         self._department = new_department
     @property
     def appointments(self):
@@ -188,12 +200,9 @@ class Appointment:
             raise TypeError("Doctor must be an object")
         if not isinstance(room,Room):
             raise TypeError("Room must be an object")
-        if not isinstance(status,str):
-            raise TypeError("Status must be a string")
-        if len(status)  <= 0:
-            raise ValueError("Status letters must be greater than 0")
         if not isinstance(appointment_time, datetime):
-            raise TypeError("Appointment time must be datetime object")    
+            raise TypeError("Appointment time must be datetime object")
+        validate_appointment_status(status)    
         self._patient = patient
         self._doctor = doctor
         self._room = room
@@ -221,10 +230,7 @@ class Appointment:
         return self._status
     @status.setter
     def status(self,new_status):
-        if not isinstance(new_status,str):
-            raise TypeError("Status must be a string")
-        if len(new_status) <=0:
-            raise ValueError("Status letters must be greater than 0")
+        validate_appointment_status(new_status)
         self._status = new_status
     def __str__(self):
         return (
@@ -239,9 +245,12 @@ class Appointment:
             return "Already cancelled"
         self._status = "Cancelled"
     def unlink(self):
-        self._patient.remove_appointment(self)
-        self._doctor.remove_appointment(self)
-        self._room.remove_appointment(self)    
+        if self in self._patient.appointments:
+            self._patient.remove_appointment(self)
+        if self in self._doctor.appointments:
+            self._doctor.remove_appointment(self)
+        if self in self._room.appointments:
+            self._room.remove_appointment(self)    
     def __repr__(self):
         return f"Appointment({self._patient!r},{self._doctor!r},{self._room!r})"
 #===================================Hospital Class==========================
@@ -266,6 +275,12 @@ class Hospital:
     @property    
     def appointments(self):
         return tuple(self._appointments)
+    @property
+    def active_appointments(self):
+        return [a for a in self._appointments if a.status not in {"Cancelled", "Completed"}]
+    @property
+    def passive_appointments(self):
+        return [a for a in self._appointments if a.status in {"Cancelled", "Completed"}]
     def add_patient(self,patient):
         if not isinstance(patient,Patient):
             raise TypeError("Patient must be an object")
@@ -291,28 +306,16 @@ class Hospital:
         self._rooms_index[room.number] = room
         return f"{room.number} registed successfully"
     def find_patient_by_id(self,ID):
-        if not isinstance(ID,int):
-            raise TypeError("ID must be integers")
-        if len(str(ID)) != 4:
-            raise ValueError("ID must be 4 digits")
+        validate_person_id(ID)
         return self._patients_index.get(ID)
     def find_doctor_by_id(self,ID):
-        if not isinstance(ID,int):
-            raise TypeError("ID must be integers")
-        if len(str(ID)) != 4:
-            raise ValueError("ID must be 4 digits")
+        validate_person_id(ID)
         return self._doctors_index.get(ID)       
     def find_room_by_num(self,number):
-        if not isinstance(number,int):
-            raise TypeError("Number must be integers")
-        if len(str(number)) != 3:
-            raise ValueError("Room number must be 3 digits")
+        validate_room_num(number)
         return self._rooms_index.get(number)
     def remove_patient(self,ID):
-        if not isinstance(ID,int):
-            raise TypeError("ID must be integers")
-        if len(str(ID)) != 4:
-            raise ValueError("ID must be 4 digits")
+        validate_person_id(ID)
         if ID not in self._patients_index:
             return "We didn't find this patient"
         patient =  self._patients_index[ID]    
@@ -325,10 +328,7 @@ class Hospital:
         self._patients.remove(patient)
         return "Removed"
     def remove_doctor(self,ID):
-        if not isinstance(ID,int):
-            raise TypeError("ID must be integers")
-        if len(str(ID)) != 4:
-            raise ValueError("ID must be 4 digits")
+        validate_person_id(ID)
         if ID not in self._doctors_index:
             return "We didn't find this doctor"
         doctor = self._doctors_index[ID]
@@ -341,10 +341,7 @@ class Hospital:
         self._doctors.remove(doctor)
         return "Removed"
     def remove_room(self,num):
-        if not isinstance(num,int):
-            raise TypeError("Room number must be integers")
-        if len(str(num)) != 3:
-            raise ValueError("Room number must be 3 digits")
+        validate_room_num(num)
         if num not in self._rooms_index:
             return "We didn't find this room"
         room = self._rooms_index[num]
@@ -371,31 +368,18 @@ class Hospital:
     def abort_an_appointment(self, appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointmet must be an object")
-        if appointment not in self._appointments:
+        if appointment not in self._active_appointments:
             return "Not found"
         appointment.cancel()
         appointment.unlink()
-        self._appointments.remove(appointment)
         return "Aborted successfully"        
     def create_an_appointment(self,doctor_ID,patient_ID,room_num,status,date):
-        if not isinstance(doctor_ID,int):
-            raise TypeError("Doctor_ID must be integers")
-        if not isinstance(patient_ID, int):
-            raise TypeError("Patient_ID must be integers")
+        validate_person_id(doctor_ID)
+        validate_person_id(patient_ID)
+        validate_room_num(room_num)
+        validate_appointment_status(status)
         if not isinstance(date,datetime):
-            raise TypeError("Date must be a datetime object")
-        if not isinstance(room_num,int):
-            raise TypeError("Room number must be integers")
-        if not isinstance(status,str):
-            raise TypeError("status must be a string")
-        if len(status) <=0:
-            raise ValueError("Status letters must be greater than 0")
-        if len(str(doctor_ID)) != 4:
-            raise ValueError("Doctor_ID must be 4 digits")
-        if len(str(patient_ID)) != 4:
-            raise ValueError("Pateint_ID must be 4 digits")
-        if len(str(room_num)) != 3:
-            raise ValueError("Room number must be 3 digits")
+            raise TypeError("Date must be datetime object")
         if doctor_ID not in self._doctors_index:
             return "Doctor is not registered"
         if patient_ID not in self._patients_index:
@@ -445,10 +429,7 @@ class Hospital:
             f"appointments={len(self._appointments)})"
             )    
     def __getitem__(self,patient_ID):
-        if not isinstance(patient_ID,int):
-            raise TypeError("ID must be integers")
-        if len(str(patient_ID)) !=4:
-            raise ValueError("ID must be 4 digits")
+        validate_person_id(patient_ID)
         if not patient_ID in self._patients_index:
             raise KeyError("Patient not found")
         return self._patients_index[patient_ID]
@@ -774,4 +755,3 @@ if hospital.appointments:
 
 print()
 print("\n========== END SYSTEM STRESS TEST ==========")
-
