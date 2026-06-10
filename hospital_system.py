@@ -42,7 +42,15 @@ def validate_appointment_status(status):
         raise ValueError("Status letters must be greater than 0")
     if status not in VALID_STATUS:
         raise ValueError("Status must be clear")
-    
+def same_hour(t1, t2):
+    if not isinstance(t1,datetime) or not isinstance(t2,datetime):
+        raise TypeError("Time must be a datetime object")
+    return (
+        t1.year == t2.year and
+        t1.month == t2.month and
+        t1.day == t2.day and
+        t1.hour == t2.hour
+    )        
 #====================================Person Class===========================
 from abc import ABC , abstractmethod
 class Person(ABC):
@@ -368,7 +376,7 @@ class Hospital:
     def abort_an_appointment(self, appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointmet must be an object")
-        if appointment not in self._active_appointments:
+        if appointment not in self.active_appointments:
             return "Not found"
         appointment.cancel()
         appointment.unlink()
@@ -388,12 +396,12 @@ class Hospital:
             return "Room is not registered" 
         if date < datetime.now():
             return "Appointment cannot be in the past"    
-        for appointment in self._appointments:
-            if appointment.appointment_time ==date and appointment.doctor.ID == doctor_ID:
-                return "Doctor already has an appointment at that time"
-            if appointment.room.number == room_num and appointment.appointment_time == date:
+        for appointment in self.active_appointments:
+            if same_hour(appointment.appointment_time,date) and appointment.doctor.ID == doctor_ID:
+                    return "Doctor already has an appointment at that time"
+            if appointment.room.number ==room_num and  same_hour(appointment.appointment_time,date):
                 return "Room already reserved at that time"
-            if appointment.patient.ID == patient_ID and appointment.appointment_time == date:
+            if appointment.patient.ID ==patient_ID and same_hour(appointment.appointment_time,date):
                 return "Patient already has an appointment at that time" 
         doctor = self._doctors_index[doctor_ID]
         patient = self._patients_index[patient_ID]
@@ -404,20 +412,20 @@ class Hospital:
         doctor.add_appointment(appointment)
         room.add_appointment(appointment)
         return "The reservation is done"
-    def check_appoinment(self,appointment):
+    def check_appointment(self,appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointment must be an object")
         if appointment not in self._appointments:
             return "We didn't find this appointment"
-        if appointment.status == "Cancelled":
+        if appointment not in self.active_appointments:
             return False
         return True    
     def __len__(self):
-        return len(self._appointments)
+        return len(self.active_appointments)
     def __contains__(self,appointment):
         if not isinstance(appointment,Appointment):
             return False
-        return appointment in self._appointments  
+        return appointment in self.active_appointments  
     def __iter__(self):
         return iter(self._patients)
     def __repr__(self):
