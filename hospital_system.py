@@ -322,6 +322,10 @@ class Hospital:
     def find_room_by_num(self,number):
         validate_room_num(number)
         return self._rooms_index.get(number)
+    def find_appointment_by_time(self,time):
+        if not isinstance(time,datetime):
+            raise TypeError("Time must be a datetime object")
+        return [appointment for appointment in self.active_appointments if same_hour(appointment.appointment_time,time)]
     def remove_patient(self,ID):
         validate_person_id(ID)
         if ID not in self._patients_index:
@@ -362,17 +366,13 @@ class Hospital:
         self._rooms.remove(room)
         return "Removed"
     def show_patients(self):
-        for patient in self:
-            print(patient)
+        return tuple(self._patients)
     def show_doctors(self):
-        for i in self._doctors:
-            print(i)
+        return tuple(self._doctors)
     def show_rooms(self):
-        for i in self._rooms:
-            print(i)
+        return tuple(self._rooms)
     def show_appointments(self):
-        for i in self._appointments:
-            print(i)
+        return tuple(self._appointments)
     def abort_an_appointment(self, appointment):
         if not isinstance(appointment,Appointment):
             raise TypeError("Appointmet must be an object")
@@ -380,7 +380,9 @@ class Hospital:
             return "Not found"
         appointment.cancel()
         appointment.unlink()
-        return "Aborted successfully"        
+        return "Aborted successfully"
+    def busy_doctors(self):
+        return list({a.doctor for a in self.active_appointments})
     def create_an_appointment(self,doctor_ID,patient_ID,room_num,status,date):
         validate_person_id(doctor_ID)
         validate_person_id(patient_ID)
